@@ -1,0 +1,9 @@
+.git/*
+*idea/*
+venv/*
+source/sperm_detection_retinanet/.ipynb_checkpoints/*
+source/sperm_detection_retinanet/dataset/*
+source/sperm_detection_retinanet/frames/*
+source/sperm_detection_retinanet/model/*
+source/sperm_detection_retinanet/results/*
+source/sperm_detection_retinanet/RetinaNet_Motile_objects_Detection/*
