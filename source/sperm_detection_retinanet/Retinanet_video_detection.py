@@ -12,77 +12,100 @@ import cv2
 import os
 import numpy as np
 import time
-# from google.colab.patches import cv2_imshow
-# set tf backend to allow memory to grow, instead of claiming everything
 import tensorflow as tf
-
-def save_crop_sperms(b, draw, sperm_name, crop_path):
-	print(b)
-	x = b[0]
-	y = b[1]
-	w = b[2]
-	h = b[3]
-	crop_image = draw[y:h, x:w]
-	# cv2.imshow("Cropped Sperm", crop_image)
-	cv2.imwrite(crop_path, crop_image)
-	pass
 
 model_path = 'model/final_retinanet_sperm_detection_3frames.h5' #Path to inference model
 
 # load retinanet model
 
 model = models.load_model(model_path)
-print(model.summary())
+#print(model.summary())
 
 # load label to names mapping for visualization purposes
 labels_to_names = {0: 'Sperm'}
 
-img1 = read_image_bgr('RetinaNet_Motile_objects_Detection/previous_frame.jpg') #Load Previous Frame
-img2 = read_image_bgr('RetinaNet_Motile_objects_Detection/Current_frame.jpg') #Load Current Frame
-img3 = read_image_bgr('RetinaNet_Motile_objects_Detection/next_frame.jpg') #Load next Frame
-img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY) #convert to gray scale
-img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY) #convert to gray scale
-img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2GRAY) #convert to gray scale
-image=np.concatenate((np.expand_dims(img1,axis=2),np.expand_dims(img2,axis=2),np.expand_dims(img3,axis=2)),axis=2) #concatenate 3 consecutive frames
+# In this block you will import the address of your video
+video_file='RetinaNet_Motile_objects_Detection/13910927_4.avi' #path to the video file
+save_path='frames' #path to the folder to save video
+video_data=[]
+cap = cv2.VideoCapture(video_file) #read video
+count = 0
+import shutil
+try:
+  shutil.rmtree(save_path)
+except:
+  pass
+#create folder
+try:
+    os.mkdir(save_path)
+except:
+    pass
+while cap.isOpened():
+    ret,frame = cap.read()
+    if ret is True:     
+        count = count + 1
+        cv2.imwrite("{}/{}.jpg".format(save_path,count), frame) #write frame
+        video_data.append("{}/{}.jpg".format(save_path,count))  #add the data to the list
+    else:
+        break
+cap.release()
 
-print(image.shape)
+data=[]
+for index,frame_data in enumerate(video_data):
+  if index==0: #first frame
+    img1 = read_image_bgr(frame_data) #Load Previous Frame
+    img2 = read_image_bgr(frame_data) #Load Current Frame
+    img3 = read_image_bgr(video_data[index+1]) #Load next Frame
+  elif index== len(video_data)-1: #last frame
+    img1 = read_image_bgr(video_data[index-1]) #Load Previous Frame
+    img2 = read_image_bgr(frame_data) #Load Current Frame
+    img3 = read_image_bgr(frame_data) #Load next Frame
+  else: #other frames
+    img1 = read_image_bgr(video_data[index-1]) #Load Previous Frame
+    img2 = read_image_bgr(frame_data) #Load Current Frame
+    img3 = read_image_bgr(video_data[index+1]) #Load next Frame
 
-draw = read_image_bgr('RetinaNet_Motile_objects_Detection/Current_frame.jpg') #the original current frame image
+  img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY) #convert to gray scale
+  img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY) #convert to gray scale
+  img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2GRAY) #convert to gray scale
+  image=np.concatenate((np.expand_dims(img1,axis=2),np.expand_dims(img2,axis=2),np.expand_dims(img3,axis=2)),axis=2) #concatenate 3 consecutive frames
 
-# preprocess image for network
-image = preprocess_image(image)
-image, scale = resize_image(image)
+  draw = read_image_bgr(frame_data) #the original current frame image
 
-# process image
-start = time.time()
-boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
-print("processing time: ", time.time() - start)
+  # preprocess image for network
+  image = preprocess_image(image)
+  image, scale = resize_image(image)
 
-# correct for image scale
-boxes /= scale
+  # process image
+  start = time.time()
+  boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
+  print("processing time: ", time.time() - start)
 
-image_width = draw.shape[1]
-image_height = draw.shape[0]
+  # correct for image scale
+  boxes /= scale
 
-# visualize detections
-sperm_cnt = 0
-for box, score, label in zip(boxes[0], scores[0], labels[0]):
-    # scores are sorted so we can break
-    if score<0.5:
-      break
-    sperm_cnt += 1
 
-    color = (255,0,0)
-    b = box.astype(int)
+  # visualize detections
+  for box, score, label in zip(boxes[0], scores[0], labels[0]):
+      # scores are sorted so we can break
+      if score<0.5:
+        break
+  
+      color = (255,0,0)
+      
+      b = box.astype(int)
+      draw_box(draw, b, color=color)
+      
+      caption = "{} {:.3f}".format(labels_to_names[label], score)
+      draw_caption(draw, b, caption)
+      data.append([frame_data,b[0],b[1],b[2],b[3],'sperm']) #add the data to the list
 
-    sperm_name = "sperm_" + str(sperm_cnt)
-    crop_path = "results/objects/" + sperm_name + "_.jpg"
-    save_crop_sperms(b, draw, sperm_name, crop_path)
- 
-    # draw_box(draw, b, color=color)
-    # caption = "{} {:.3f}".format(labels_to_names[label], score)
-    # draw_caption(draw, b, caption)
+  # cv2_imshow(draw)
+  cv2.imwrite('detected.jpg',draw)
 
-# cv2.imshow("image", draw[1])
-# name = 'results/detected_image_sperm_'+ str(sperm_cnt) +'_.jpg'
-# cv2.imwrite(name, draw)
+with open('detections.csv','w',newline='') as f: #write the data to a csv file which will be used for tracking
+  csvwriter=csv.writer(f)
+  for row in data:
+    csvwriter.writerow(row)
+
+#Download detections.csv and use it for perform tracking (via modified csr-dcf.py file)
