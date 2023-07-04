@@ -13,3 +13,6 @@ source/YOLOv6_Deploy/data-example
 source/video
 source/weights
 source/sperm_classification/example
+source/YOLOv6_Deploy/README.md
+source/YOLOv6_Deploy/YOLOv6/.github/
+source/YOLOv6_Deploy/YOLOv6/.pre-commit-config.yaml
