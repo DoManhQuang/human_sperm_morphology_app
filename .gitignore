@@ -7,3 +7,12 @@ source/sperm_detection_retinanet/frames/*
 source/sperm_detection_retinanet/model/*
 source/sperm_detection_retinanet/results/*
 source/sperm_detection_retinanet/RetinaNet_Motile_objects_Detection/*
+source/YOLOv6_Deploy/.idea
+source/YOLOv6_Deploy/venv
+source/YOLOv6_Deploy/data-example
+source/video
+source/weights
+source/sperm_classification/example
+source/YOLOv6_Deploy/README.md
+source/YOLOv6_Deploy/YOLOv6/.github/
+source/YOLOv6_Deploy/YOLOv6/.pre-commit-config.yaml
