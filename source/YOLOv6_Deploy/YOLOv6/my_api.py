@@ -10,10 +10,10 @@ import my_yolov6
 
 # load model
 
-yolov6_model = my_yolov6.my_yolov6("./source/YOLOv6_Deploy/YOLOv6/weights/1.0/yolov6t_segrelu.pt", "cpu", 
-                                   "./source/YOLOv6_Deploy/YOLOv6/weights/miamia-sperm.yaml", 640, False)
+yolov6_model = my_yolov6.my_yolov6("./weights/1.0/last_ckpt.pt", "cpu", 
+                                   "./weights/dataset.yaml", 640, False)
 
-sperm_cls = tf.keras.models.load_model('./source/sperm_classification/model/smids_mobiv2.h5')
+sperm_cls  = None #tf.keras.models.load_model('./source/sperm_classification/model/smids_mobiv2.h5')
 
 # Khởi tạo Flask Server Backend
 app = Flask(__name__)
@@ -55,11 +55,23 @@ class CNNPredictSperm(Resource):
             "results": results
         }
 
+class Tracking(Resource):
+    def post(self):
+          # check if the post request has the file part
+        if 'file' not in request.files:
+            return 'No file part'
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit a empty part without filename
+        if file.filename == '':
+            return 'No selected file'
+        return file.filename
+
+
 api.add_resource(HelloWorld, '/')
 api.add_resource(PredictYoloV6, '/api/yolo/v6/predict')
 api.add_resource(CNNPredictSperm, '/api/cnn/cls/predict')
-
-
+api.add_resource(Tracking,'/api/yolo/v6/tracking')
 # Start Backend
 if __name__ == '__main__':
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
