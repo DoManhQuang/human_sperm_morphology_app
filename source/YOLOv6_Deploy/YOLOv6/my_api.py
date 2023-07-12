@@ -7,7 +7,9 @@ ROOT = os.getcwd()
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 import my_yolov6
-
+from PIL import Image
+import numpy as np
+from detect_track import DeepSortTracker
 # load model
 
 yolov6_model = my_yolov6.my_yolov6("./weights/1.0/last_ckpt.pt", "cpu", 
@@ -57,15 +59,14 @@ class CNNPredictSperm(Resource):
 
 class Tracking(Resource):
     def post(self):
-          # check if the post request has the file part
-        if 'file' not in request.files:
-            return 'No file part'
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit a empty part without filename
-        if file.filename == '':
-            return 'No selected file'
-        return file.filename
+        images = request.files.getlist('images')
+        tracker =  DeepSortTracker()
+        for image in images:
+            img = Image.open(image)
+            img_array = np.array(img)
+            tracker.detect_per_frame(img_array)
+        print(tracker.memo)
+        return '!Upload success'
 
 
 api.add_resource(HelloWorld, '/')
