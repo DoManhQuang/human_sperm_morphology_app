@@ -9,7 +9,8 @@ if str(ROOT) not in sys.path:
 import my_yolov6
 from PIL import Image
 import numpy as np
-from detect_track import DeepSortTracker
+from detect_track import DeepSortTracker,node_to_dict,node_to_json
+import json
 # load model
 
 yolov6_model = my_yolov6.my_yolov6("./weights/1.0/last_ckpt.pt", "cpu", 
@@ -65,8 +66,8 @@ class Tracking(Resource):
             img = Image.open(image)
             img_array = np.array(img)
             tracker.detect_per_frame(img_array)
-        print(tracker.memo)
-        return '!Upload success'
+        return json.dumps(tracker.memo,default=node_to_dict)
+      
 
 
 api.add_resource(HelloWorld, '/')
