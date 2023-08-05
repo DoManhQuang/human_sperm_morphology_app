@@ -18,3 +18,6 @@ source/YOLOv6_Deploy/YOLOv6/.github/
 source/YOLOv6_Deploy/YOLOv6/.pre-commit-config.yaml
 source/vizualize-flaskapp/static/*
 static
+source/YOLOv6_Deploy/outputs
+source/YOLOv6_Deploy/inputs
+source/.ipynb_checkpoints
