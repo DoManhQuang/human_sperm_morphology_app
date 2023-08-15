@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "gradio": "^0.1.0"
+  }
+}
